@@ -103,6 +103,12 @@ def get_columns_data(layer_name,circle_center,radius_small,my_area=None):
 
 AMPASynapseCounter_bg = 0 # initialize global counter variable for AMPA/NMDA colocalization in BG (unfortunate design choice, but required by nest fast connect procedure)
 
+## Function hex_corner provides vertex coordinates of a hexagon, given a center, a radius (size) and the vertex id.
+def hex_corner(center,size,i):
+    angle_deg = 60 * i - 30
+    angle_rad = np.pi / 180 * angle_deg
+    return [center[0] + size * np.cos(angle_rad),center[1] + size * np.sin(angle_rad)]
+
 
 #define the centers that will connect ctx to bg, and store them at bg_params['circle_center']
 #centers must be within grid 2D dimensions.
@@ -149,7 +155,42 @@ def connect_psg_to_channels(columns_gids, psg, syn):
         print('circle  ', j, ' contains #: ', len(circle_j_gids))
         circle_j_gids_nb[str(j)] = len(circle_j_gids)
         nest.Connect(pre=[psg[j]], post=circle_j_gids, syn_spec=syn)
-        
+
+
+
+### function to define BG grid positions in 2D
+### parameters: 
+# nbCh: number of channels (always 1)
+# sim_pts: number of points to generate
+# a0, a1:  -x shift, distance from starting point (x axis)
+# b0, b1:  -y shift, distance from starting point (y axis)
+# -----------------------------------------------------
+def grid_positions(nbCh, sim_pts,a0,a1,b0,b1):
+    #N_vp = nest.GetKernelStatus(['total_num_virtual_procs'])[0]
+    #pyrngs = [np.random.RandomState(123456)]# for s in ([123456]*N_vp)]
+    n = int(sim_pts*nbCh)
+    n_squared = np.ceil(np.sqrt(n))
+    coord = [[x/n_squared*a1-a0, y/n_squared*b1-b0] for x in np.arange(0,n_squared, dtype=float) for y in np.arange(0,n_squared, dtype=float)]
+    # too many points due to square root rounding? remove at random # same random numbers over multiple nodes
+    if len(coord) > n:
+        coord = np.array(coord)[np.sort(pyrngs[0].choice(range(len(coord)), size=n, replace=False))].tolist()
+    aux_x = [coord[i][0] for i in range(len(coord))]
+    aux_y = [coord[i][1] for i in range(len(coord))]
+    return [aux_x, aux_y]
+
+
+def grid_uniform_positions(number_of_neurons):
+    pos = [[np.random.uniform(-0.5, 0.5), np.random.uniform(-0.5, 0.5)] for j in range(number_of_neurons)]
+    return pos
+
+def save_layers_position(layer_name, layer_gid, positions):
+    gid_and_positions=np.column_stack((np.array(nest.GetNodes(layer_gid)[0]),positions))
+    #if not os.path.exists('log/'+layer_name+'.txt'):
+    np.savetxt('log/'+layer_name+'.txt', gid_and_positions, fmt='%1.3f')
+
+    if layer_name=='MSN':
+      np.savetxt('log/'+layer_name+'_d1.txt', gid_and_positions[:int(len(gid_and_positions)/2)], fmt='%1.3f')
+      np.savetxt('log/'+layer_name+'_d2.txt', gid_and_positions[int(len(gid_and_positions)/2):], fmt='%1.3f')
 
 
 #-------------------------------------------------------------------------------

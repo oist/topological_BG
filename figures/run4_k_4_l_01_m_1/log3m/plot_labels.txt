@@ -1,0 +1,3 @@
+Lambda,0.1
+kappa,4.0
+Mod,1.0

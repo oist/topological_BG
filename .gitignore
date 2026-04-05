@@ -1,0 +1,7 @@
+extras/
+scripts/
+log/
+__pycache__/
+*.pyc
+*.gdf
+.DS_Store

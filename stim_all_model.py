@@ -21,6 +21,12 @@ def main():
     sim_params = fetch_params.read_sim()
     bg_params = fetch_params.read_bg()
 
+    for sim_model in sim_params['sim_model'].keys():
+        if sim_params['sim_model'][sim_model]['on']:
+            sim_regions=sim_params['sim_model'][sim_model]['regions']
+            sim_model_on=sim_model
+            print ('simulation model ', sim_model_on, ' will start')
+
     # 1.5) initialize nest
     nest_routine.initialize_nest(sim_params)
 
@@ -309,66 +315,65 @@ def main():
             con_ep = 100 
             dis_ep= 100 
             gen_ep= 30 
-            cond_from = con_ep + dis_ep + gen_ep
-            total_episodes = cond_from
+            total_episodes = con_ep + dis_ep + gen_ep
             dc = 0.00056 
 
-            for episode in np.arange(total_episodes):
-                if episode > cond_from: 
-                    if random.random() > 1.0: # this is CS+
-                        CS_plus.append(1)
-                        CS_minus.append(0)
-                        Poisson_ch1 = Istrong * 1.7 
-                        Poisson_ch2 = Iweak * 1.7 
-                        current_task.append(1)
-                    else:  ##this is CS-
-                        CS_minus.append(1)
-                        CS_plus.append(0)
-                        Poisson_ch1 = Iweak * 1.7 
-                        Poisson_ch2 = Istrong * 1.7 
-                        current_task.append(-1)
-                        #STDPs for DA dips
-                        nest.SetDefaults('syn_d1',{'vt':bg_params['vt_d2'][0],
-                             'A_plus':-1.0*dc/40.0,'A_minus':dc/40.0}) 
-                        nest.SetDefaults('syn_d2',{'vt':bg_params['vt_d2'][0],
-                             'A_plus':dc,'A_minus':-1.0*dc})
+            # Episode phases:
+            #   0 .. con_ep                    : CS+ conditioning   (DA bursts, ch1 strong)
+            #   con_ep+1 .. con_ep+gen_ep      : generalization probing (no stim / T1-T2 probes)
+            #   con_ep+gen_ep+1 .. total_ep-1  : CS- discrimination (DA dips, ch2 strong, via do_tests.txt)
 
-                else:
+            for episode in np.arange(total_episodes):
+                if episode > con_ep:  # CS- discrimination phase
+                    CS_minus.append(1)
+                    CS_plus.append(0)
+                    Poisson_ch1 = Iweak * 1.7   # ch1 weak  for CS-
+                    Poisson_ch2 = Istrong * 1.7  # ch2 strong for CS-
+                    current_task.append(-1)
+                    #STDPs for DA dips
+                    nest.SetDefaults('syn_d1',{'vt':bg_params['vt_d2'][0],
+                         'A_plus':-1.0*dc/40.0,'A_minus':dc/40.0})
+                    nest.SetDefaults('syn_d2',{'vt':bg_params['vt_d2'][0],
+                         'A_plus':dc,'A_minus':-1.0*dc})
+
+                else:  # CS+ conditioning phase (episodes 0..con_ep)
                     CS_plus.append(1)
                     CS_minus.append(0)
+                    Poisson_ch1 = Istrong * 1.7  # ch1 strong for CS+
+                    Poisson_ch2 = Iweak * 1.7    # ch2 weak  for CS+
                     current_task.append(1)
                     #STDPs for DA bursts
                     nest.SetDefaults('syn_d1',{'vt':bg_params['vt_d1'][0],
-                             'A_plus':dc,'A_minus':(dc/4.0)}) 
+                             'A_plus':dc,'A_minus':(dc/4.0)})
                     nest.SetDefaults('syn_d2',{'vt':bg_params['vt_d1'][0],
                              'A_plus':dc/3.0,'A_minus':dc*3.0/4.0})
   
                 if episode > ( con_ep + gen_ep):
                     with open('./log/' + 'do_tests.txt', 'r') as file:
                         for lines in file:
-                            do_tests = lines
+                            do_tests = lines.strip()
                     print('do_tests: ',do_tests,'length: ',len(do_tests))
-                    if do_tests[:-1]=='T2':
+                    if do_tests=='T2':
                         Poisson_ch1 = Iweak * 1.7 
                         Poisson_ch2 = Istrong * 1.7 
-                    if do_tests[:-1]=='T1': 
+                    if do_tests=='T1': 
                         Poisson_ch1 = Istrong * 1.7 
                         Poisson_ch2 = Iweak * 1.7 
                 else:
                     if episode < (con_ep + 1):
-                        do_tests = 'F '
+                        do_tests = 'F'
                     else:
-                        do_tests = 'T '
+                        do_tests = 'T'
                         Poisson_ch1 = 0.0
                         Poisson_ch2 = 0.0
                     ##############
-                    if do_tests[:-1]=='T' and (episode==(con_ep + 5) or episode==(con_ep + 15)):
-                        do_tests = 'T1 '
+                    if do_tests=='T' and (episode==(con_ep + 5) or episode==(con_ep + 15)):
+                        do_tests = 'T1'
                         Poisson_ch1 = Istrong * 1.7 
                         Poisson_ch2 = Iweak * 1.7 
 
-                    if do_tests[:-1]=='T' and (episode==(con_ep + 10)  or episode==(con_ep + 20)):
-                        do_tests= 'T2 '
+                    if do_tests=='T' and (episode==(con_ep + 10)  or episode==(con_ep + 20)):
+                        do_tests = 'T2'
                         Poisson_ch1 = Iweak * 1.7 
                         Poisson_ch2 = Istrong * 1.7 
                     ##############
@@ -429,7 +434,7 @@ def main():
 
                 ## Task evaluation ##
 
-                if episode < total_episodes-2 and do_tests[:-1]=='F':  
+                if episode < total_episodes-2 and do_tests=='F':  
 
                     if current_task[-1] == 1: #CS+ task
                         if GPi_fr[-1][channel_1_idx] < GPi_fr[-1][channel_2_idx]: #if channel 1 is winner
@@ -472,10 +477,6 @@ def main():
                             print('episode: ',episode,' ,task: ',current_task[-1],'no dopamine release, selected channel 2')
                 else:
                     print('testing GPi response without Dop burst or dip')
-
-
-                if episode == con_ep: 
-                    cond_from = episode
 
 
                 nest.Simulate(dopa_dt + dopa_break)

@@ -2,11 +2,14 @@
 
 bgParams =\
 {
+    # Nucleus-specific neuron parameters: C_m [pF], tau_m [ms], V_th [mV]
+    # From Girard et al. (refs [6,7])
     "FSI_iaf": {
         "C_m": 3.1,
         "V_th": 16.0,
         "tau_m": 3.1
     },
+    # Synaptic gain factors per nucleus (global weight scaling). From Girard et al. (ref [7])
     "GFSI": 1.0,
     "GGPe": 1.0,
     "GGPe_STN": 1.0,
@@ -26,6 +29,8 @@ bgParams =\
     },
     "GSTN": 1.0,
     "GSTN_GPi": 1.0,
+    # DC current [pA] injected per nucleus to reproduce resting-state firing rates.
+    # Tuned via multi-objective optimization — from Girard et al. (ref [7])
     "IeFSI": 8.0,
     "IeGPe": 11.0,
     "IeGPi": 8.5,
@@ -36,6 +41,8 @@ bgParams =\
         "V_th": 30.0,
         "tau_m": 13.0
     },
+    # Fraction of target neurons receiving input from each source nucleus.
+    # From anatomical data — Girard et al. (refs [6,7])
     "ProjPercent": {
         "CMPf->FSI": 1.0,
         "CMPf->GPe": 1.0,
@@ -62,6 +69,7 @@ bgParams =\
         "STN->GPi": 0.72,
         "STN->MSN": 0.17
     },
+    
     "RedundancyType": "outDegreeAbs",
     "Ri": 2.0,
     "Rm": 2.0,
@@ -70,6 +78,8 @@ bgParams =\
         "V_th": 26.0,
         "tau_m": 6.0
     },
+    # In-degrees (alpha): number of incoming synapses per target neuron per projection.
+    # From anatomical data and multi-objective optimization Girard et al. (refs [6,7])
     "alpha": {
         "CMPf->FSI": 1053,
         "CMPf->GPe": 79,
@@ -96,10 +106,24 @@ bgParams =\
         "STN->GPi": 233,
         "STN->MSN": 0
     },
+    # --- Striatal asymmetries ---
+    # asymmetry_1: structural asymmetry for MSN_D1->D1, MSN_D2->D1, MSN_D2->D2 connections.
+    # Each accounts for ~30% of observed connections; modeled as 50% of optimized Nsyn.
     "asymmetry_1": 0.5,  #30%, structural asymmetry. this parameter is kept fixed. (MSN_D1->MSN_D1, MSN_D2->MSN_D2, MSN_D2->MSN_D1)
+    # asymmetry_2: structural asymmetry for MSN_D1->D2 connections, which are sparse.
+    # Modeled as 10% of Nsyn. Fixed throughout all simulations.
     "asymmetry_2": 0.1, #6%, structural asummetry. we explore this asymmetry (MSN_D1->MSN_D2)
-    "MSND2_mod":  1.0, # 1=no modulation. modulation of synapses from MSND2->MSNs (used only during dopamine dips, on CS- episodes) 
+    # MSND2_mod (η): modulation of MSN-D2 collateral synapses during DA dips (CS- episodes).
+    # Models hypothesis that DA depletion enhances MSN-D2 inhibitory strength toward all MSNs.
+    # η=1 means no modulation; η>1 promotes convergence in discrimination learning, especially at low λ.
+    "MSND2_mod":  1.0, # 1=no modulation. modulation of synapses from MSND2->MSNs (used only during dopamine dips, on CS- episodes)
+    # syn_asymm (κ): strength-dependent asymmetry. Scales MSN-D2->MSN weights.
+    # Based on Taverna et al. (2008): MSN-D2 PSPs are 2x-4x larger than MSN-D1.
+    # Explored between κ=2.0 and κ=4.0 to study its role in discrimination learning (Fig.1B, Fig.4C).
     "syn_asymm": 2.0, # functional asymmetry. This will increase the synaptic streght from MSND2 to others MSNs.
+    
+    # Connectivity types per projection: "focused" (spatially precise, channel-preserving)
+    # or "diffuse" (broad spread across the 2D layer). From Girard et al. (ref [7]).
     "cTypeCMPfFSI": "diffuse",
     "cTypeCMPfGPe": "diffuse",
     "cTypeCMPfGPi": "diffuse",
@@ -140,6 +164,8 @@ bgParams =\
             1.8393972058572117
         ]
     },
+    # Real neuron counts in macaque BG (anatomical reference, Table 2 in paper).
+    # CSN and PTN are cortical inputs.
     "countCMPf": 86000.0,
     "countCSN": None,
     "countFSI": 532000.0,
@@ -148,6 +174,7 @@ bgParams =\
     "countMSN": 26448000.0,
     "countPTN": None,
     "countSTN": 77000.0,
+    # Axonal distance contact fractions per projection. From Girard et al. (ref [7])
     "distcontact": {
         "CMPf->FSI": 0.06,
         "CMPf->GPe": 0.0,
@@ -174,6 +201,7 @@ bgParams =\
         "STN->GPi": 0.59,
         "STN->MSN": 0.16
     },
+   
     "dx": {
         "FSI": 1.5e-06,
         "GPe": 1.7e-06,
@@ -188,6 +216,9 @@ bgParams =\
         "MSN": 0.000619,
         "STN": 0.00075
     },
+    # Simulated neuron counts at 1:834 scale (Table 2 in paper).
+    # MSN total is split 50/50 into MSN-D1 and MSN-D2 at runtime.
+    # Scaled by simParams['scalefactor'] in ini_all.py.
     "nbCMPf": 36000.0,
     "nbCSN": 36000.0,
     "nbFSI": 636.0,
@@ -196,6 +227,8 @@ bgParams =\
     "nbMSN": 31728.0,
     "nbPTN": 36000.0,
     "nbSTN": 96.0,
+    # Target resting-state firing rates [Hz] per nucleus: [min, max].
+    # Used to validate resting-state simulation.
     "normalrate": {
         "CMPf": [
             4.0,
@@ -231,6 +264,11 @@ bgParams =\
         ]
     },
     "num_neurons": 1000,
+    # overlap_d1d2 (λ): fraction of MSN projections shared between direct and indirect pathways.
+    # λ=0: full segregation (MSN-D1->GPi only, MSN-D2->GPe only).
+    # λ=0.3: 30% of GPi inputs from MSN-D2, 30% of GPe inputs from MSN-D1.
+    # Explored between λ=0 and λ=0.5. Higher λ degrades action-selection efficiency but
+    # accelerates discrimination learning convergence (Fig.1C, Fig.4B, Fig.6C).
     "overlap_d1d2": 0.1, #direct and indirect pathways overlap.
     "parrotCMPf": True,
     "plast_gain": 0.65,
@@ -262,6 +300,7 @@ bgParams =\
     "spread_diffuse": 2.0,
     "spread_focused": 0.15,
     "stochastic_delays": None,
+    # Synaptic delays [ms] per projection. From Girard et al. (ref [7])
     "tau": {
         "CMPf->FSI": 7.0,
         "CMPf->GPe": 7.0,
