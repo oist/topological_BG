@@ -105,3 +105,17 @@ sbatch go.slurm
 ```
 
 The job requests 10 CPUs and up to 2 days of wall time. Edit `go.slurm` to adjust resources or paths for your cluster environment.
+
+---
+
+## Citation
+
+If you use this code or data in your work, please cite:
+
+> Gutierrez CE, Lienard J, Girard B, Urakubo H, Doya K (2025). *Topological basal ganglia model with dopamine-modulated spike-timing-dependent plasticity reproduces reinforcement learning, discriminatory learning, and neuropsychiatric disorders.* bioRxiv. https://doi.org/10.1101/2025.11.10.687760
+
+---
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
