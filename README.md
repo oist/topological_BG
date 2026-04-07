@@ -14,7 +14,6 @@ A biologically detailed spiking neural network model of the basal ganglia (BG) i
 | `nest_routine.py` | Core PyNEST functions: kernel initialization, layer creation with 2D/3D topology, focused/diffuse connectivity, Poisson input generators, spike detectors, and firing rate utilities. |
 | `ini_all.py` | High-level BG instantiation: creates all nucleus layers, wires them together, and sets up dopamine-modulated STDP synapses for the plasticity mode. |
 | `stim_all_model.py` | Main simulation script. Reads parameters, instantiates the network, and runs the selected simulation mode. Saves firing rates and spike data to `./log/`. |
-| `task.py` | Standalone module implementing a 2D point-mass motor task and a Q-learning agent (conceptually related to BG reinforcement learning; not used in the main NEST pipeline). |
 | `go.slurm` | SLURM batch script for running the simulation on an HPC cluster (10 CPUs, 2-day wall time). |
 | `figures/plots.py` | Standalone plotting script that reproduces all paper figures (Figures 1, 3–8) from pre-saved simulation data. Run from inside the `figures/` directory. |
 | `figures/run4_*/` | Pre-saved simulation output folders used by `plots.py`. Each folder name encodes the parameter set: κ (kappa), λ (lambda), η (mod), and condition (`_p_no_conv` = Parkinson, `_s` = Schizophrenia). |
@@ -24,8 +23,11 @@ A biologically detailed spiking neural network model of the basal ganglia (BG) i
 ## Requirements
 
 - [NEST simulator](https://www.nest-simulator.org/) 2.20 with PyNEST
-- Python 3.7+
+- Python 3.8 (recommended; required for Apple Silicon compatibility)
 - NumPy
+- `six` (required by PyNEST: `pip install six`)
+
+> **Note on installation:** NEST 2.20 requires `setuptools<66` and `cython<3` to build correctly with Python 3.8. See [NEST installation notes](https://www.nest-simulator.org/installation/) for details.
 
 A `log/` directory must exist in the working directory before running:
 

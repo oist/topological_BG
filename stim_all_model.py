@@ -10,7 +10,6 @@ import nest
 import nest.topology as ntop
 import numpy as np
 import time
-import task
 import json
 import random
 
