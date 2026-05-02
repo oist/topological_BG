@@ -4,6 +4,15 @@ A biologically detailed spiking neural network model of the basal ganglia (BG) i
 
 ---
 
+## NEST Versions
+
+| Directory | NEST version | Notes |
+|---|---|---|
+| *(root)* | NEST 2.20 | Original implementation |
+| [`top_BG_nest3/`](top_BG_nest3/) | NEST 3.x | Translation of the model for NEST 3 — same parameters and simulation modes, updated API calls |
+
+---
+
 ## Repository Structure
 
 | File | Description |
