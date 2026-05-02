@@ -1,6 +1,9 @@
 extras/
 scripts/
-log/
+log/*
+!log/do_tests.txt
+top_BG_nest3/log/*
+!top_BG_nest3/log/do_tests.txt
 __pycache__/
 *.pyc
 *.gdf

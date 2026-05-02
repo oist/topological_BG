@@ -24,7 +24,7 @@ simParams =\
     "simDuration": 3000.0,
     "sim_model": {
         "action_selection": {
-            "on": True,
+            "on": False,
             "regions": {
                 "BG": True,
                 "CB_M1": False,
@@ -36,7 +36,7 @@ simParams =\
             }
         },
         "plasticity": {
-            "on": False,
+            "on": True,
             "regions": {
                 "BG": True,
                 "CB_M1": False,
